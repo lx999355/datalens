@@ -1,4 +1,5 @@
 // 删除 node_modules 中不需要的冗余文件，减少部署包体积
+// 保守策略：只删除明确不参与运行的文件
 import { readdirSync, statSync, rmSync, existsSync } from "node:fs"
 import { join } from "node:path"
 
@@ -10,15 +11,12 @@ function rmIfExists(path) {
   }
 }
 
-// Heavy packages - remove non-essential directories
+// 明确可删的大型非核心目录
 rmIfExists(join(ROOT, "cos-nodejs-sdk-v5/demo"))
 rmIfExists(join(ROOT, "cos-nodejs-sdk-v5/test"))
 rmIfExists(join(ROOT, "recharts/umd"))
-rmIfExists(join(ROOT, "xlsx/dist"))
-rmIfExists(join(ROOT, "xlsx/types"))
-rmIfExists(join(ROOT, "framer-motion/dist/es"))
 
-// Walk node_modules and delete docs, tests, source maps
+// 递归删除 docs/test/examples 目录、.map 和 .md 文件
 function walk(dir, depth = 0) {
   if (depth > 3) return
   let entries
@@ -30,13 +28,14 @@ function walk(dir, depth = 0) {
     let st
     try { st = statSync(full) } catch { continue }
     if (!st.isDirectory()) {
-      // Delete source maps and markdown in nested dirs (NOT .d.ts - TypeScript needs them)
-      if (depth >= 2 && (name.endsWith(".map") || name.endsWith(".md") || name.startsWith("LICENSE") || name.startsWith("CHANGELOG") || name === "README.md")) {
+      // 删除深层的 source maps 和 markdown
+      if (depth >= 2 && (name.endsWith(".map") || name.endsWith(".md"))) {
         try { rmSync(full, { force: true }) } catch {}
       }
       continue
     }
     const lc = name.toLowerCase()
+    // 只删除明确不参与运行的目录
     if (lc === "docs" || lc === "test" || lc === "tests" || lc === "__tests__" || lc === "examples" || lc === "demo") {
       try { rmSync(full, { recursive: true, force: true }) } catch {}
       continue
