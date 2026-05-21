@@ -1,17 +1,15 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  outputFileTracingExcludes: {
-    "*": [
-      "node_modules/.pnpm/**",
-      "node_modules/**/*.map",
-      "node_modules/**/*.d.ts",
-      "node_modules/**/*.md",
-      "node_modules/**/LICENSE*",
-      "node_modules/**/CHANGELOG*",
-      "node_modules/**/README*",
-    ],
-  },
+  // standalone 输出：Next.js 文件追踪只打包实际引用的文件
+  output: "standalone",
+
+  // 外部包：不在 SSR 函数内重复打包，运行时从 node_modules 加载
+  serverExternalPackages: [
+    "@prisma/client",
+    "prisma",
+    "cos-nodejs-sdk-v5",
+  ],
 }
 
 export default nextConfig
