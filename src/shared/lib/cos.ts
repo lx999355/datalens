@@ -1,9 +1,16 @@
-import COS from "cos-nodejs-sdk-v5"
+let _COS: any = null
 
-const cos = new COS({
-  SecretId: process.env.COS_SECRET_ID || "",
-  SecretKey: process.env.COS_SECRET_KEY || "",
-})
+async function getCOS() {
+  if (!_COS) {
+    const mod = await import("cos-nodejs-sdk-v5")
+    const COSClass = mod.default || mod
+    _COS = new COSClass({
+      SecretId: process.env.COS_SECRET_ID || "",
+      SecretKey: process.env.COS_SECRET_KEY || "",
+    })
+  }
+  return _COS
+}
 
 const BUCKET = process.env.COS_BUCKET || ""
 const REGION = process.env.COS_REGION || "ap-guangzhou"
@@ -13,6 +20,7 @@ export async function uploadToCOS(
   body: Buffer,
   contentType?: string
 ): Promise<string> {
+  const cos = await getCOS()
   return new Promise((resolve, reject) => {
     cos.putObject(
       {
@@ -22,7 +30,7 @@ export async function uploadToCOS(
         Body: body,
         ContentType: contentType,
       },
-      (err) => {
+      (err: Error | null) => {
         if (err) reject(err)
         else resolve(`https://${BUCKET}.cos.${REGION}.myqcloud.com/${key}`)
       }
@@ -31,6 +39,7 @@ export async function uploadToCOS(
 }
 
 export async function deleteFromCOS(key: string): Promise<void> {
+  const cos = await getCOS()
   return new Promise((resolve, reject) => {
     cos.deleteObject(
       {
@@ -38,7 +47,7 @@ export async function deleteFromCOS(key: string): Promise<void> {
         Region: REGION,
         Key: key,
       },
-      (err) => {
+      (err: Error | null) => {
         if (err) reject(err)
         else resolve()
       }
@@ -49,7 +58,7 @@ export async function deleteFromCOS(key: string): Promise<void> {
 export function getCOSKeyFromUrl(url: string): string {
   try {
     const u = new URL(url)
-    return u.pathname.slice(1) // Remove leading /
+    return u.pathname.slice(1)
   } catch {
     return ""
   }
