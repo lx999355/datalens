@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         username: { label: "用户名或邮箱", type: "text" },
         password: { label: "密码", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: Partial<Record<"username" | "password", unknown>> | undefined) {
         const { username, password } = credentials as {
           username: string
           password: string
