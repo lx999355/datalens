@@ -18,7 +18,7 @@ rmIfExists(join(ROOT, "xlsx/dist"))
 rmIfExists(join(ROOT, "xlsx/types"))
 rmIfExists(join(ROOT, "framer-motion/dist/es"))
 
-// Walk node_modules and delete docs, tests, maps, ts sources
+// Walk node_modules and delete docs, tests, source maps
 function walk(dir, depth = 0) {
   if (depth > 3) return
   let entries
@@ -30,8 +30,8 @@ function walk(dir, depth = 0) {
     let st
     try { st = statSync(full) } catch { continue }
     if (!st.isDirectory()) {
-      // Delete source maps, type defs, markdown in deep dirs
-      if (depth >= 2 && (name.endsWith(".map") || name.endsWith(".d.ts") || name.endsWith(".md") || name.startsWith("LICENSE") || name.startsWith("CHANGELOG") || name === "README.md")) {
+      // Delete source maps and markdown in nested dirs (NOT .d.ts - TypeScript needs them)
+      if (depth >= 2 && (name.endsWith(".map") || name.endsWith(".md") || name.startsWith("LICENSE") || name.startsWith("CHANGELOG") || name === "README.md")) {
         try { rmSync(full, { force: true }) } catch {}
       }
       continue
