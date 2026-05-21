@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/prune.mjs && prisma generate && next build",
+    "build": "node scripts/prune.mjs && prisma generate && next build && node scripts/swap-standalone.mjs",
     "start": "next start",
     "lint": "eslint"
   },
