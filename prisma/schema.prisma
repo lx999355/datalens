@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  username       String    @unique
+  email          String    @unique
+  password       String
+  role           String    @default("user")    // super_admin | sub_admin | user
+  bio            String?
+  avatar         String?
+  isActive       Boolean   @default(true)
+  loginAttempts  Int       @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  reports        Report[]
+  charts         Chart[]
+  orders         Order[]
+  subscriptions  UserSubscription[]
+  likes          Like[]
+  comments       Comment[]
+  followers      Follow[]              @relation("following")
+  following      Follow[]              @relation("follower")
+  notifications  Notification[]
+  downloadLogs   DownloadLog[]
+
+  @@index([username])
+  @@index([email])
+  @@index([role])
+}
+
+model Report {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  title         String
+  description   String?
+  type          String                     // finished | source_data
+  visibility    String    @default("public")  // public | private
+  fileUrl       String
+  fileSize      Int?
+  fileType      String?
+  tags          String?                    // JSON array string: ["销售","2024"]
+  isActive      Boolean   @default(true)
+  viewCount     Int       @default(0)
+  downloadCount Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  likes         Like[]
+  comments      Comment[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([visibility, isActive])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Chart {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  title         String
+  description   String?
+  type          String                     // image | generated
+  chartType     String?                    // bar | line | pie | scatter | area | radar | heatmap | sankey
+  visibility    String    @default("public")
+  fileUrl       String                     // 生成的PNG或上传的图片
+  sourceDataUrl String?                    // 源数据CSV文件URL
+  chartConfig   Json?                      // { colors, labels, legend, showDataLabels, xAxis, yAxis }
+  tags          String?                    // JSON array string
+  isActive      Boolean   @default(true)
+  viewCount     Int       @default(0)
+  downloadCount Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  likes         Like[]
+  comments      Comment[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([visibility, isActive])
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  type          String                     // custom | subscription | single_custom
+  status        String    @default("pending_payment")
+  amount        Float
+  requirement   String?                    // 定制需求JSON {title, description, dataType, expectedFormat}
+  attachments   String?                    // 附件URL JSON array
+  deliverUrl    String?                    // 交付文件URL
+  deliverFileName String?                  // 交付文件名
+  deliverFileType String?                  // 交付文件MIME类型
+  deliverFileSize Int?                     // 交付文件大小(bytes)
+  adminNote     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model SubscriptionPlan {
+  id                String    @id @default(cuid())
+  name              String              // "月付方案" | "年付方案" | "单次定制"
+  type              String              // monthly | yearly | single
+  price             Float
+  customReportCount Int       @default(0)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  subscriptions     UserSubscription[]
+
+  @@index([isActive])
+}
+
+model UserSubscription {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  planId                String
+  plan                  SubscriptionPlan @relation(fields: [planId], references: [id])
+  status                String    @default("pending")  // pending | active | expired | cancelled
+  startDate             DateTime?
+  endDate               DateTime?
+  customReportRemaining Int       @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Like {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  reportId   String?
+  report     Report?   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  chartId    String?
+  chart      Chart?    @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+
+  @@unique([userId, reportId])
+  @@unique([userId, chartId])
+  @@index([reportId])
+  @@index([chartId])
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  reportId   String?
+  report     Report?   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  chartId    String?
+  chart      Chart?    @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  content    String
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([reportId, createdAt(sort: Desc)])
+  @@index([chartId, createdAt(sort: Desc)])
+}
+
+model Follow {
+  id          String    @id @default(cuid())
+  followerId  String
+  follower    User      @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User      @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    // order_completed | order_status | new_like | new_comment | new_follow | subscription_activated | subscription_expiring
+  content   String
+  link      String?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+}
+
+model DownloadLog {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType String    // report | chart
+  targetId   String
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+}
+
+model SiteConfig {
+  id        String    @id @default(cuid())
+  key       String    @unique
+  value     String
+  updatedAt DateTime  @updatedAt
+}
