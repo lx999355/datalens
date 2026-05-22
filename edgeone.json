@@ -1,6 +1,6 @@
 {
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "npx prisma generate && node scripts/cleanup-engines.js && npm run build",
   "outputDirectory": ".next",
   "nodeVersion": "20.18.0",
   "cloudFunctions": {
