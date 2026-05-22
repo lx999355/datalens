@@ -1,7 +1,7 @@
 {
   "installCommand": "npm install --omit=dev && npm install @tailwindcss/postcss tailwindcss",
-  "buildCommand": "npx prisma generate && npm run build && rm -rf .next/standalone",
-  "outputDirectory": ".next",
+  "buildCommand": "npx prisma generate && npm run build",
+  "outputDirectory": ".next/standalone",
   "nodeVersion": "20.18.0",
   "cloudFunctions": {
     "nodejs": {
