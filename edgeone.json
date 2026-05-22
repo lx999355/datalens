@@ -1,13 +1,14 @@
 {
-  "buildCommand": "pnpm exec prisma generate && pnpm exec next build && pnpm exec eo-next build",
-  "installCommand": "pnpm install",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "nodeVersion": "20.18.0",
   "cloudFunctions": {
     "nodejs": {
       "externalNodeModules": [
         "@prisma/client",
-        "cos-nodejs-sdk-v5"
+        "cos-nodejs-sdk-v5",
+        "bcryptjs"
       ],
       "maxDuration": 30
     }
