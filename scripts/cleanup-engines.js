@@ -57,8 +57,8 @@ total += cleanDir(dotPrismaDir, [
   'libquery_engine', 'schema-engine'
 ]);
 
-// 删除客户端库的 node_modules 目录（如果它们被安装了）
-const clientLibs = ['recharts', 'html2canvas', 'xlsx', 'framer-motion'];
+// 删除客户端库的 node_modules 目录（它们已被 Next.js 打包到客户端 JS bundle 中，运行时不再需要）
+const clientLibs = ['recharts', 'html2canvas', 'xlsx'];
 clientLibs.forEach(lib => {
   const libDir = path.join(__dirname, '..', 'node_modules', lib);
   if (fs.existsSync(libDir)) {

@@ -8,11 +8,7 @@
       "externalNodeModules": [
         "@prisma/client",
         "cos-nodejs-sdk-v5",
-        "bcryptjs",
-        "recharts",
-        "html2canvas",
-        "xlsx",
-        "framer-motion"
+        "bcryptjs"
       ],
       "maxDuration": 30
     }
