@@ -25,7 +25,7 @@ windowsDirs.forEach(dir => {
   removeDir(fullPath);
 });
 
-// Remove large unnecessary packages (keep prisma and its deps)
+// Remove only dev tools that are definitely not needed at runtime
 const unnecessaryPackages = [
   'node_modules/@esbuild',
   'node_modules/@babel',
@@ -38,11 +38,6 @@ const unnecessaryPackages = [
   'node_modules/eslint-plugin-import',
   'node_modules/eslint-plugin-react-refresh',
   'node_modules/@typescript-eslint',
-  'node_modules/es-abstract',
-  'node_modules/es-toolkit',
-  'node_modules/@reduxjs',
-  'node_modules/codepage',
-  'node_modules/@napi-rs',
 ];
 
 unnecessaryPackages.forEach(dir => {
