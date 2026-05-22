@@ -1,6 +1,6 @@
 "use client"
 import { useState, useCallback, useEffect } from "react"
-import { signIn } from "next-auth/react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/shared/ui/Input"
 import { Button } from "@/shared/ui/Button"
@@ -23,6 +23,14 @@ export function RegisterForm() {
   const [globalError, setGlobalError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+
+  // 已登录则重定向
+  const { status } = useSession()
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard")
+    }
+  }, [status, router])
 
   const debouncedUsername = useDebounce(form.username, 500)
 
@@ -130,6 +138,19 @@ export function RegisterForm() {
         return next
       })
     }
+  }
+
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <GlassCard level={2} className="p-8 max-w-md mx-auto">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-4">
+            <Icon icon={UserPlus} size={24} className="text-white" />
+          </div>
+          <p className="text-muted-foreground">加载中...</p>
+        </div>
+      </GlassCard>
+    )
   }
 
   return (

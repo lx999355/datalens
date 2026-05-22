@@ -1,7 +1,5 @@
 import { AdminSidebar } from "@/modules/admin/components/AdminSidebar"
 
-export const dynamic = "force-dynamic"
-
 export default function AdminLayout({
   children,
 }: {

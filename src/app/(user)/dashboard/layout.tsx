@@ -1,7 +1,5 @@
 import { UserSidebar } from "@/modules/dashboard/components/UserSidebar"
 
-export const dynamic = "force-dynamic"
-
 export default function DashboardLayout({
   children,
 }: {
