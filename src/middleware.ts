@@ -1,28 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
-import { jwtVerify } from "jose"
+import { auth } from "@/shared/lib/auth"
+import { NextResponse } from "next/server"
 
-const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "fallback-secret")
+export default auth((req) => {
+  const { pathname } = req.nextUrl
+  const token = req.auth
 
-async function getTokenPayload(request: NextRequest) {
-  const sessionToken =
-    request.cookies.get("next-auth.session-token")?.value ||
-    request.cookies.get("__Secure-next-auth.session-token")?.value
-
-  if (!sessionToken) return null
-
-  try {
-    const { payload } = await jwtVerify(sessionToken, SECRET)
-    return payload as Record<string, unknown>
-  } catch {
-    return null
-  }
-}
-
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const token = await getTokenPayload(request)
-
-  // Admin routes protection
+  // ========== Admin 路由保护 ==========
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (!token) {
       if (pathname.startsWith("/api/")) {
@@ -31,11 +14,12 @@ export async function proxy(request: NextRequest) {
           { status: 401 }
         )
       }
-      const loginUrl = new URL("/login", request.url)
+      const loginUrl = new URL("/login", req.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
-    const role = token.role as string
+
+    const role = (token?.user as Record<string, unknown>)?.role as string
     if (role !== "super_admin" && role !== "sub_admin") {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json(
@@ -43,9 +27,10 @@ export async function proxy(request: NextRequest) {
           { status: 403 }
         )
       }
-      return NextResponse.redirect(new URL("/dashboard", request.url))
+      return NextResponse.redirect(new URL("/dashboard", req.url))
     }
-    // super_admin only routes
+
+    // 仅超级管理员可访问设置页
     if (pathname.startsWith("/admin/settings") || pathname.startsWith("/api/admin/settings")) {
       if (role !== "super_admin") {
         if (pathname.startsWith("/api/")) {
@@ -54,29 +39,32 @@ export async function proxy(request: NextRequest) {
             { status: 403 }
           )
         }
-        return NextResponse.redirect(new URL("/admin", request.url))
+        return NextResponse.redirect(new URL("/admin", req.url))
       }
     }
   }
 
-  // Public API routes — no auth required
+  // ========== 公开 API（无需认证） ==========
   const publicApiPaths = [
     "/api/subscriptions/plans",
     "/api/auth/check-username",
     "/api/auth/signup",
   ]
   const isPublicApi = publicApiPaths.some((p) => pathname.startsWith(p))
-  // Public content routes: GET reports, charts, users without auth
-  const isPublicContent =
-    (pathname.startsWith("/api/reports/") || pathname.startsWith("/api/charts/") || pathname.match(/^\/api\/users\/[^/]+$/)) &&
-    request.method === "GET"
 
-  // Auth API routes are handled by NextAuth - let them through
+  // 公开内容路由：GET 请求不需要认证
+  const isPublicContent =
+    (pathname.startsWith("/api/reports/") ||
+      pathname.startsWith("/api/charts/") ||
+      pathname.match(/^\/api\/users\/[^/]+$/)) &&
+    req.method === "GET"
+
+  // NextAuth 路由直接放行
   if (pathname.startsWith("/api/auth/")) {
     return NextResponse.next()
   }
 
-  // User routes protection (dashboard pages and non-public API routes)
+  // ========== 用户路由保护 ==========
   if (
     (pathname.startsWith("/dashboard") ||
       (pathname.startsWith("/api/") && !isPublicApi && !isPublicContent)) &&
@@ -90,14 +78,14 @@ export async function proxy(request: NextRequest) {
           { status: 401 }
         )
       }
-      const loginUrl = new URL("/login", request.url)
+      const loginUrl = new URL("/login", req.url)
       loginUrl.searchParams.set("callbackUrl", pathname)
       return NextResponse.redirect(loginUrl)
     }
   }
 
   return NextResponse.next()
-}
+})
 
 export const config = {
   matcher: [

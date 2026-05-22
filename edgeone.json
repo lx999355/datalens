@@ -1,0 +1,30 @@
+{
+  "buildCommand": "pnpm exec prisma generate && pnpm exec next build && pnpm exec eo-next build",
+  "installCommand": "pnpm install",
+  "outputDirectory": ".next",
+  "nodeVersion": "20.18.0",
+  "cloudFunctions": {
+    "nodejs": {
+      "externalNodeModules": [
+        "@prisma/client",
+        "cos-nodejs-sdk-v5"
+      ],
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ]
+}
