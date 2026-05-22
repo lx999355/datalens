@@ -9,14 +9,6 @@ function removeDir(dir) {
   } catch(e) {}
 }
 
-function removeFile(file) {
-  if (!fs.existsSync(file)) return;
-  try {
-    fs.unlinkSync(file);
-    console.log('Removed file:', file);
-  } catch(e) {}
-}
-
 console.log('Cleaning up for Linux deployment...');
 
 // Remove Windows-specific binaries
@@ -46,6 +38,32 @@ const macDirs = [
 ];
 
 macDirs.forEach(dir => {
+  const fullPath = path.join(__dirname, '..', dir);
+  removeDir(fullPath);
+});
+
+// Remove large unnecessary packages (but keep prisma CLI for build)
+const unnecessaryPackages = [
+  'node_modules/effect',  // dependency of prisma CLI
+  'node_modules/@esbuild',  // build tool
+  'node_modules/@babel',  // build tool
+  'node_modules/typescript',  // devDependency
+  'node_modules/eslint',  // devDependency
+  'node_modules/eslint-config-next',  // devDependency
+  'node_modules/eslint-plugin-react',  // devDependency
+  'node_modules/eslint-plugin-react-hooks',  // devDependency
+  'node_modules/eslint-plugin-jsx-a11y',  // devDependency
+  'node_modules/eslint-plugin-import',  // devDependency
+  'node_modules/eslint-plugin-react-refresh',  // devDependency
+  'node_modules/@typescript-eslint',  // devDependency
+  'node_modules/es-abstract',  // large polyfill
+  'node_modules/es-toolkit',  // utility library
+  'node_modules/@reduxjs',  // not used
+  'node_modules/codepage',  // xlsx dependency
+  'node_modules/@napi-rs',  // native bindings
+];
+
+unnecessaryPackages.forEach(dir => {
   const fullPath = path.join(__dirname, '..', dir);
   removeDir(fullPath);
 });

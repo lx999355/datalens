@@ -1,8 +1,15 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // 仅服务端使用的包需要外部化（客户端库由 Next.js 自行打包到浏览器 bundle）
-  serverExternalPackages: ["@prisma/client", "bcryptjs"],
+  // 外部化不需要在 SSR 中打包的包
+  serverExternalPackages: [
+    "@prisma/client",
+    "bcryptjs",
+    "html2canvas",
+    "xlsx",
+    "jose",
+    "cos-nodejs-sdk-v5"
+  ],
 
   // 允许 COS 存储桶图片
   images: {
