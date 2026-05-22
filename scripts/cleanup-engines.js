@@ -1,27 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-function cleanDir(dir, patterns) {
-  if (!fs.existsSync(dir)) return 0;
-  
-  const files = fs.readdirSync(dir);
-  let removed = 0;
-  
-  files.forEach(f => {
-    const shouldRemove = patterns.some(pattern => f.includes(pattern));
-    if (shouldRemove) {
-      const fullPath = path.join(dir, f);
-      try {
-        fs.unlinkSync(fullPath);
-        console.log('Removed:', path.join(dir, f));
-        removed++;
-      } catch(e) {}
-    }
-  });
-  
-  return removed;
-}
-
 function removeDir(dir) {
   if (!fs.existsSync(dir)) return;
   try {
@@ -30,31 +9,64 @@ function removeDir(dir) {
   } catch(e) {}
 }
 
-// 清理 @prisma/engines - 只保留 linux 版本
+function removeFile(file) {
+  if (!fs.existsSync(file)) return;
+  try {
+    fs.unlinkSync(file);
+    console.log('Removed file:', file);
+  } catch(e) {}
+}
+
+console.log('Cleaning up for Linux deployment...');
+
+// Remove Windows-specific binaries
+const windowsDirs = [
+  'node_modules/@img/sharp-win32-x64',
+  'node_modules/@next/swc-win32-x64-msvc',
+  'node_modules/@tailwindcss/oxide-win32-x64-msvc',
+  'node_modules/@unrs/resolver-binding-win32-x64-msvc',
+  'node_modules/lightningcss-win32-x64-msvc'
+];
+
+windowsDirs.forEach(dir => {
+  const fullPath = path.join(__dirname, '..', dir);
+  removeDir(fullPath);
+});
+
+// Remove macOS-specific binaries
+const macDirs = [
+  'node_modules/@img/sharp-darwin-x64',
+  'node_modules/@img/sharp-darwin-arm64',
+  'node_modules/@next/swc-darwin-x64',
+  'node_modules/@next/swc-darwin-arm64',
+  'node_modules/@tailwindcss/oxide-darwin-x64',
+  'node_modules/@tailwindcss/oxide-darwin-arm64',
+  'node_modules/lightningcss-darwin-x64',
+  'node_modules/lightningcss-darwin-arm64'
+];
+
+macDirs.forEach(dir => {
+  const fullPath = path.join(__dirname, '..', dir);
+  removeDir(fullPath);
+});
+
+// Clean @prisma/engines - keep only what's needed
 const enginesDir = path.join(__dirname, '..', 'node_modules', '@prisma', 'engines');
-console.log('Cleaning @prisma/engines...');
-let total = cleanDir(enginesDir, [
-  'darwin', 'windows', 'debian', 'rhel', 'arm64', 'musl',
-  'mysql', 'sqlite', 'cockroachdb', 'sqlserver',
-  'libquery_engine', 'schema-engine'
-]);
+if (fs.existsSync(enginesDir)) {
+  console.log('Cleaning @prisma/engines...');
+  const files = fs.readdirSync(enginesDir);
+  files.forEach(f => {
+    if (f.includes('darwin') || f.includes('windows') || f.includes('debian') || 
+        f.includes('rhel') || f.includes('arm64') || f.includes('musl') ||
+        f.includes('mysql') || f.includes('sqlite') || f.includes('cockroachdb') || 
+        f.includes('sqlserver') || f.includes('libquery_engine') || f.includes('schema-engine')) {
+      const fullPath = path.join(enginesDir, f);
+      try {
+        fs.unlinkSync(fullPath);
+        console.log('Removed:', fullPath);
+      } catch(e) {}
+    }
+  });
+}
 
-// 清理 @prisma/client - 只保留 linux postgresql 引擎
-const clientDir = path.join(__dirname, '..', 'node_modules', '@prisma', 'client');
-console.log('Cleaning @prisma/client...');
-total += cleanDir(clientDir, [
-  'darwin', 'windows', 'debian', 'rhel', 'arm64', 'musl',
-  'mysql', 'sqlite', 'cockroachdb', 'sqlserver',
-  'libquery_engine', 'schema-engine'
-]);
-
-// 清理 .prisma - 只保留 linux postgresql 引擎
-const dotPrismaDir = path.join(__dirname, '..', 'node_modules', '.prisma');
-console.log('Cleaning .prisma...');
-total += cleanDir(dotPrismaDir, [
-  'darwin', 'windows', 'debian', 'rhel', 'arm64', 'musl',
-  'mysql', 'sqlite', 'cockroachdb', 'sqlserver',
-  'libquery_engine', 'schema-engine'
-]);
-
-console.log(`\nCleanup complete. Removed ${total} files/directories.`);
+console.log('\nCleanup complete.');
