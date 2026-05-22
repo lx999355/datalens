@@ -1,16 +1,17 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // 外部化不需要在 SSR 中打包的包（不能与 transpilePackages 冲突）
+  // 使用 standalone 模式，显著减少部署大小
+  output: "standalone",
+
+  // 外部化不需要在 SSR 中打包的包
   serverExternalPackages: [
     "@prisma/client",
     "bcryptjs",
     "html2canvas",
     "xlsx",
     "jose",
-    "cos-nodejs-sdk-v5",
-    "typescript",
-    "prisma"
+    "cos-nodejs-sdk-v5"
   ],
 
   // 允许 COS 存储桶图片
