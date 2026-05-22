@@ -1,24 +1,8 @@
 {
   "installCommand": "npm install --omit=dev && npm install @tailwindcss/postcss tailwindcss",
   "buildCommand": "npx prisma generate && node scripts/cleanup-engines.js && npm run build",
-  "outputDirectory": ".next",
+  "outputDirectory": ".next/standalone",
   "nodeVersion": "20.18.0",
-  "externalNodeModules": [
-    "next",
-    "@prisma/client",
-    "cos-nodejs-sdk-v5",
-    "bcryptjs",
-    "recharts",
-    "html2canvas",
-    "xlsx",
-    "lucide-react",
-    "jose",
-    "react",
-    "react-dom",
-    "typescript",
-    "prisma",
-    "effect"
-  ],
   "cloudFunctions": {
     "nodejs": {
       "maxDuration": 30
