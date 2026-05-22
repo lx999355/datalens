@@ -8,7 +8,12 @@ const nextConfig: NextConfig = {
     "html2canvas",
     "xlsx",
     "jose",
-    "cos-nodejs-sdk-v5"
+    "cos-nodejs-sdk-v5",
+    "recharts",
+    "lucide-react",
+    "typescript",
+    "prisma",
+    "effect"
   ],
 
   // 允许 COS 存储桶图片
