@@ -25,11 +25,10 @@ windowsDirs.forEach(dir => {
   removeDir(fullPath);
 });
 
-// Remove only dev tools that are definitely not needed at runtime
+// Remove only dev tools that are definitely not needed at runtime or build
 const unnecessaryPackages = [
   'node_modules/@esbuild',
   'node_modules/@babel',
-  'node_modules/typescript',
   'node_modules/eslint',
   'node_modules/eslint-config-next',
   'node_modules/eslint-plugin-react',
