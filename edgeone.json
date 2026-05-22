@@ -3,24 +3,24 @@
   "buildCommand": "npx prisma generate && node scripts/cleanup-engines.js && npm run build",
   "outputDirectory": ".next",
   "nodeVersion": "20.18.0",
+  "externalNodeModules": [
+    "next",
+    "@prisma/client",
+    "cos-nodejs-sdk-v5",
+    "bcryptjs",
+    "recharts",
+    "html2canvas",
+    "xlsx",
+    "lucide-react",
+    "jose",
+    "react",
+    "react-dom",
+    "typescript",
+    "prisma",
+    "effect"
+  ],
   "cloudFunctions": {
     "nodejs": {
-      "externalNodeModules": [
-        "next",
-        "@prisma/client",
-        "cos-nodejs-sdk-v5",
-        "bcryptjs",
-        "recharts",
-        "html2canvas",
-        "xlsx",
-        "lucide-react",
-        "jose",
-        "react",
-        "react-dom",
-        "typescript",
-        "prisma",
-        "effect"
-      ],
       "maxDuration": 30
     }
   },
