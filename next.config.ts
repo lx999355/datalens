@@ -1,8 +1,8 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // Prisma 在 serverless 环境需要外部化
-  serverExternalPackages: ["@prisma/client", "bcryptjs"],
+  // Prisma 和客户端库在 serverless 环境需要外部化
+  serverExternalPackages: ["@prisma/client", "bcryptjs", "recharts", "html2canvas", "xlsx", "framer-motion"],
 
   // 允许 COS 存储桶图片
   images: {
