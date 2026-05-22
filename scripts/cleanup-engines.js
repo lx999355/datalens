@@ -57,29 +57,4 @@ total += cleanDir(dotPrismaDir, [
   'libquery_engine', 'schema-engine'
 ]);
 
-// 删除客户端库的 node_modules 目录（它们已被 Next.js 打包到客户端 JS bundle 中，运行时不再需要）
-const clientLibs = ['recharts', 'html2canvas', 'xlsx'];
-clientLibs.forEach(lib => {
-  const libDir = path.join(__dirname, '..', 'node_modules', lib);
-  if (fs.existsSync(libDir)) {
-    removeDir(libDir);
-    total++;
-  }
-});
-
-// 删除客户端库的依赖（这些库的依赖也可能很大）
-const clientDeps = [
-  'd3', 'd3-scale', 'd3-shape', 'd3-array', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format',
-  'd3-color', 'd3-ease', 'd3-interpolate', 'd3-path', 'd3-geo', 'd3-geo-projection',
-  'internmap', 'robust-predicates', ' delaunator',
-  'canvg', 'css-line-break', 'html2canvas-pro'
-];
-clientDeps.forEach(dep => {
-  const depDir = path.join(__dirname, '..', 'node_modules', dep);
-  if (fs.existsSync(depDir)) {
-    removeDir(depDir);
-    total++;
-  }
-});
-
 console.log(`\nCleanup complete. Removed ${total} files/directories.`);
