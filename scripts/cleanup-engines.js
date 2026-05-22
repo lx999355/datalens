@@ -25,42 +25,24 @@ windowsDirs.forEach(dir => {
   removeDir(fullPath);
 });
 
-// Remove macOS-specific binaries
-const macDirs = [
-  'node_modules/@img/sharp-darwin-x64',
-  'node_modules/@img/sharp-darwin-arm64',
-  'node_modules/@next/swc-darwin-x64',
-  'node_modules/@next/swc-darwin-arm64',
-  'node_modules/@tailwindcss/oxide-darwin-x64',
-  'node_modules/@tailwindcss/oxide-darwin-arm64',
-  'node_modules/lightningcss-darwin-x64',
-  'node_modules/lightningcss-darwin-arm64'
-];
-
-macDirs.forEach(dir => {
-  const fullPath = path.join(__dirname, '..', dir);
-  removeDir(fullPath);
-});
-
-// Remove large unnecessary packages (but keep prisma CLI for build)
+// Remove large unnecessary packages (keep prisma and its deps)
 const unnecessaryPackages = [
-  'node_modules/effect',  // dependency of prisma CLI
-  'node_modules/@esbuild',  // build tool
-  'node_modules/@babel',  // build tool
-  'node_modules/typescript',  // devDependency
-  'node_modules/eslint',  // devDependency
-  'node_modules/eslint-config-next',  // devDependency
-  'node_modules/eslint-plugin-react',  // devDependency
-  'node_modules/eslint-plugin-react-hooks',  // devDependency
-  'node_modules/eslint-plugin-jsx-a11y',  // devDependency
-  'node_modules/eslint-plugin-import',  // devDependency
-  'node_modules/eslint-plugin-react-refresh',  // devDependency
-  'node_modules/@typescript-eslint',  // devDependency
-  'node_modules/es-abstract',  // large polyfill
-  'node_modules/es-toolkit',  // utility library
-  'node_modules/@reduxjs',  // not used
-  'node_modules/codepage',  // xlsx dependency
-  'node_modules/@napi-rs',  // native bindings
+  'node_modules/@esbuild',
+  'node_modules/@babel',
+  'node_modules/typescript',
+  'node_modules/eslint',
+  'node_modules/eslint-config-next',
+  'node_modules/eslint-plugin-react',
+  'node_modules/eslint-plugin-react-hooks',
+  'node_modules/eslint-plugin-jsx-a11y',
+  'node_modules/eslint-plugin-import',
+  'node_modules/eslint-plugin-react-refresh',
+  'node_modules/@typescript-eslint',
+  'node_modules/es-abstract',
+  'node_modules/es-toolkit',
+  'node_modules/@reduxjs',
+  'node_modules/codepage',
+  'node_modules/@napi-rs',
 ];
 
 unnecessaryPackages.forEach(dir => {
