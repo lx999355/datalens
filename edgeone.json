@@ -16,7 +16,10 @@
         "lucide-react",
         "jose",
         "react",
-        "react-dom"
+        "react-dom",
+        "typescript",
+        "prisma",
+        "effect"
       ],
       "maxDuration": 30
     }
