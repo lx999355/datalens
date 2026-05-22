@@ -1,7 +1,7 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // 外部化不需要在 SSR 中打包的包
+  // 外部化不需要在 SSR 中打包的包（不能与 transpilePackages 冲突）
   serverExternalPackages: [
     "@prisma/client",
     "bcryptjs",
@@ -9,11 +9,8 @@ const nextConfig: NextConfig = {
     "xlsx",
     "jose",
     "cos-nodejs-sdk-v5",
-    "recharts",
-    "lucide-react",
     "typescript",
-    "prisma",
-    "effect"
+    "prisma"
   ],
 
   // 允许 COS 存储桶图片
@@ -28,7 +25,6 @@ const nextConfig: NextConfig = {
 
   // 实验性功能
   experimental: {
-    // 允许从 src 目录外导入
     optimizePackageImports: ["lucide-react"],
   },
 }
