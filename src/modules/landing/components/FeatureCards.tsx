@@ -30,7 +30,7 @@ const features = [
     icon: Users,
     title: "社区互动",
     description: "浏览公开内容、点赞评论、关注创作者，发现更多数据价值",
-    href: "/pricing",
+    href: "/reports",
   },
 ]
 
