@@ -5,15 +5,15 @@ async function getCOS() {
     const mod = await import("cos-nodejs-sdk-v5")
     const COSClass = mod.default || mod
     _COS = new COSClass({
-      SecretId: process.env.TX_SECRET_ID || "",
-      SecretKey: process.env.TX_SECRET_KEY || "",
+      SecretId: process.env.COS_SECRET_ID || process.env.TX_SECRET_ID || "",
+      SecretKey: process.env.COS_SECRET_KEY || process.env.TX_SECRET_KEY || "",
     })
   }
   return _COS
 }
 
-const BUCKET = process.env.TX_COS_BUCKET || ""
-const REGION = process.env.TX_COS_REGION || "ap-guangzhou"
+const BUCKET = process.env.COS_BUCKET || process.env.TX_COS_BUCKET || ""
+const REGION = process.env.COS_REGION || process.env.TX_COS_REGION || "ap-guangzhou"
 
 export async function uploadToCOS(
   key: string,
@@ -29,6 +29,7 @@ export async function uploadToCOS(
         Key: key,
         Body: body,
         ContentType: contentType,
+        ACL: "public-read",
       },
       (err: Error | null) => {
         if (err) reject(err)
