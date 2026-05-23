@@ -5,32 +5,54 @@ import { PAGE_SIZES } from "@/shared/lib/constants"
 
 export async function GET(request: NextRequest) {
   const session = await auth()
-  if (!session?.user) return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "请先登录" } }, { status: 401 })
-
-  const userId = (session.user as any).id as string
   const searchParams = request.nextUrl.searchParams
   const page = parseInt(searchParams.get("page") || "1")
-  const pageSize = PAGE_SIZES.reports
+  const pageSize = parseInt(searchParams.get("pageSize") || "20")
   const type = searchParams.get("type")
-  const visibility = searchParams.get("visibility")
   const search = searchParams.get("search")
 
-  const where: Record<string, unknown> = {
+  // 公开浏览：返回所有 public 的内容
+  if (!session?.user) {
+    const where: Record<string, unknown> = {
+      visibility: "public",
+      ...(type && type !== "all" && { type }),
+      ...(search && { title: { contains: search, mode: "insensitive" } }),
+    }
+    const [items, total] = await Promise.all([
+      prisma.report.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { user: { select: { username: true, avatar: true } } },
+      }),
+      prisma.report.count({ where }),
+    ])
+    return NextResponse.json({
+      data: { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
+    })
+  }
+
+  // 登录用户：返回自己的内容
+  const userId = (session.user as any).id as string
+  const visibility = searchParams.get("visibility")
+
+  const userWhere: Record<string, unknown> = {
     userId,
-    ...(type && { type }),
+    ...(type && type !== "all" && { type }),
     ...(visibility && { visibility }),
     ...(search && { title: { contains: search, mode: "insensitive" } }),
   }
 
   const [items, total] = await Promise.all([
     prisma.report.findMany({
-      where,
+      where: userWhere,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: { user: { select: { username: true, avatar: true } } },
     }),
-    prisma.report.count({ where }),
+    prisma.report.count({ where: userWhere }),
   ])
 
   const enrichedItems = await Promise.all(
