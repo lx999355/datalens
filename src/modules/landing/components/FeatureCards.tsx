@@ -34,6 +34,10 @@ const features = [
   },
 ]
 
+function handleClick(href: string) {
+  window.location.href = href
+}
+
 export function FeatureCards() {
   return (
     <section className="px-4 py-20">
@@ -55,7 +59,7 @@ export function FeatureCards() {
         <SpotlightGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature) => (
             <TiltCard key={feature.title}>
-              <MagneticButton href={feature.href} maxOffset={6} className="h-full w-full">
+              <MagneticButton onClick={() => handleClick(feature.href)} maxOffset={6} className="h-full w-full">
                 <GlassCard level={2} hover className="p-6 h-full cursor-pointer">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
                     <Icon icon={feature.icon} size={24} className="text-primary" />

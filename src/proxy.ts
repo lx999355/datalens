@@ -54,8 +54,8 @@ export default auth((req) => {
 
   // 公开内容路由：GET 请求不需要认证
   const isPublicContent =
-    (pathname.startsWith("/api/reports/") ||
-      pathname.startsWith("/api/charts/") ||
+    (pathname.startsWith("/api/reports") ||
+      pathname.startsWith("/api/charts") ||
       pathname.match(/^\/api\/users\/[^/]+$/)) &&
     req.method === "GET"
 
