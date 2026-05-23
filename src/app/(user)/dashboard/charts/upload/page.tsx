@@ -8,44 +8,53 @@ import { Textarea } from "@/shared/ui/Textarea"
 import { Select } from "@/shared/ui/Select"
 import { Icon } from "@/shared/ui/Icon"
 import { useToast } from "@/shared/ui/Toast"
-import { Upload, ImagePlus } from "lucide-react"
+import { Upload, ImagePlus, X } from "lucide-react"
 import { MagneticButton } from "@/shared/ui/MagneticButton"
 
 export default function UploadChartPage() {
   const router = useRouter()
   const { addToast } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
+  const [files, setFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
   const [form, setForm] = useState({ title: "", description: "", visibility: "public" })
   const [isUploading, setIsUploading] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]
-    if (f) {
-      setFile(f)
+    const selected = Array.from(e.target.files || [])
+    if (selected.length === 0) return
+    setFiles((prev) => [...prev, ...selected])
+    selected.forEach((f) => {
       const reader = new FileReader()
-      reader.onload = () => setPreview(reader.result as string)
+      reader.onload = () => setPreviews((prev) => [...prev, reader.result as string])
       reader.readAsDataURL(f)
-    }
+    })
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file || !form.title) { addToast("warning", "请填写必要信息"); return }
+    if (files.length === 0 || !form.title) { addToast("warning", "请选择文件并填写标题"); return }
 
     setIsUploading(true)
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("title", form.title)
-      formData.append("description", form.description)
-      formData.append("type", "image")
-      formData.append("visibility", form.visibility)
-
-      const res = await fetch("/api/charts", { method: "POST", body: formData })
-      if (!res.ok) throw new Error("上传失败")
-      addToast("success", "图表上传成功")
+      let success = 0
+      for (const file of files) {
+        const fd = new FormData()
+        fd.append("file", file)
+        fd.append("title", files.length === 1 ? form.title : `${form.title} (${success + 1})`)
+        fd.append("description", form.description)
+        fd.append("type", "image")
+        fd.append("visibility", form.visibility)
+        const res = await fetch("/api/charts", { method: "POST", body: fd })
+        if (res.ok) success++
+      }
+      addToast("success", `${success} 个文件上传成功`)
       router.push("/dashboard/charts")
     } catch { addToast("error", "上传失败") }
     finally { setIsUploading(false) }
@@ -60,15 +69,28 @@ export default function UploadChartPage() {
             className="border-2 border-dashed border-white/[0.1] rounded-2xl p-8 text-center cursor-pointer hover:border-primary/30 transition-colors"
             onClick={() => fileRef.current?.click()}
           >
-            {preview ? (
-              <img src={preview} alt="预览" className="max-h-48 mx-auto rounded-xl" />
+            {previews.length > 0 ? (
+              <div className="flex flex-wrap gap-3 justify-center">
+                {previews.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} alt={`预览 ${i + 1}`} className="max-h-32 rounded-xl" />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-danger text-white flex items-center justify-center text-xs"
+                      onClick={(ev) => { ev.stopPropagation(); removeFile(i) }}
+                    >
+                      <Icon icon={X} size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             ) : (
               <>
                 <Icon icon={ImagePlus} size={32} className="text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">点击选择图表图片 (PNG/JPG/SVG, 最大20MB)</p>
+                <p className="text-sm text-muted-foreground">点击选择图表图片 (PNG/JPG/SVG, 可多选, 单文件最大20MB)</p>
               </>
             )}
-            <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} accept=".png,.jpg,.jpeg,.svg" />
+            <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} accept=".png,.jpg,.jpeg,.svg" multiple />
           </div>
           <Input label="标题" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
           <Textarea label="描述" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
@@ -79,7 +101,9 @@ export default function UploadChartPage() {
               <Button variant="secondary" type="button" onClick={() => router.back()}>取消</Button>
             </MagneticButton>
             <MagneticButton maxOffset={6}>
-              <Button type="submit" disabled={isUploading}>{isUploading ? "上传中..." : "上传"}</Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? `上传中...` : `上传 (${files.length} 个文件)`}
+              </Button>
             </MagneticButton>
           </div>
         </form>

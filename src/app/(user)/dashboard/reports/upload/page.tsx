@@ -8,41 +8,50 @@ import { Textarea } from "@/shared/ui/Textarea"
 import { Select } from "@/shared/ui/Select"
 import { Icon } from "@/shared/ui/Icon"
 import { useToast } from "@/shared/ui/Toast"
-import { Upload, FileUp } from "lucide-react"
+import { Upload, FileUp, X } from "lucide-react"
 import { MagneticButton } from "@/shared/ui/MagneticButton"
 
 export default function UploadReportPage() {
   const router = useRouter()
   const { addToast } = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [form, setForm] = useState({ title: "", description: "", type: "finished", visibility: "public" })
   const [isUploading, setIsUploading] = useState(false)
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || [])
+    if (selected.length === 0) return
+    setFiles((prev) => [...prev, ...selected])
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file) { addToast("warning", "请选择文件"); return }
+    if (files.length === 0) { addToast("warning", "请选择文件"); return }
     if (!form.title) { addToast("warning", "请输入标题"); return }
 
     setIsUploading(true)
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("title", form.title)
-      formData.append("description", form.description)
-      formData.append("type", form.type)
-      formData.append("visibility", form.visibility)
-
-      const res = await fetch("/api/reports", { method: "POST", body: formData })
-      if (!res.ok) {
-        const json = await res.json()
-        throw new Error(json.error?.message || "上传失败")
+      let success = 0
+      for (const file of files) {
+        const fd = new FormData()
+        fd.append("file", file)
+        fd.append("title", files.length === 1 ? form.title : `${form.title} (${success + 1})`)
+        fd.append("description", form.description)
+        fd.append("type", form.type)
+        fd.append("visibility", form.visibility)
+        const res = await fetch("/api/reports", { method: "POST", body: fd })
+        if (res.ok) success++
       }
-      addToast("success", "报告上传成功")
+      addToast("success", `${success} 个文件上传成功`)
       router.push("/dashboard/reports")
-      router.refresh()
-    } catch (err: any) {
-      addToast("error", err.message || "上传失败")
+    } catch {
+      addToast("error", "上传失败")
     } finally {
       setIsUploading(false)
     }
@@ -58,11 +67,23 @@ export default function UploadReportPage() {
             onClick={() => fileRef.current?.click()}
           >
             <Icon icon={FileUp} size={32} className="text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              {file ? file.name : "点击选择文件 (PDF/Word/Excel/CSV, 最大50MB)"}
-            </p>
-            <input ref={fileRef} type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv" />
+            {files.length > 0 ? (
+              <div className="space-y-1">
+                {files.map((f, i) => (
+                  <div key={i} className="flex items-center justify-center gap-2 text-sm text-foreground">
+                    <span className="truncate max-w-xs">{f.name}</span>
+                    <button type="button" className="text-muted-foreground hover:text-danger" onClick={(ev) => { ev.stopPropagation(); removeFile(i) }}>
+                      <Icon icon={X} size={14} />
+                    </button>
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground mt-2">点击继续添加文件</p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">点击选择文件 (PDF/Word/Excel/CSV, 可多选, 单文件最大50MB)</p>
+            )}
+            <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv" multiple />
           </div>
           <Input label="标题" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required placeholder="输入报告标题" />
           <Textarea label="描述" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="描述报告内容" />
@@ -75,7 +96,9 @@ export default function UploadReportPage() {
               <Button variant="secondary" type="button" onClick={() => router.back()}>取消</Button>
             </MagneticButton>
             <MagneticButton maxOffset={6}>
-              <Button type="submit" disabled={isUploading}>{isUploading ? "上传中..." : "上传"}</Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? "上传中..." : `上传 (${files.length} 个文件)`}
+              </Button>
             </MagneticButton>
           </div>
         </form>
