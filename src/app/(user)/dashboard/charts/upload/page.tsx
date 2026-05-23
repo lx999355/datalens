@@ -8,7 +8,7 @@ import { Textarea } from "@/shared/ui/Textarea"
 import { Select } from "@/shared/ui/Select"
 import { Icon } from "@/shared/ui/Icon"
 import { useToast } from "@/shared/ui/Toast"
-import { Upload, ImagePlus, X } from "lucide-react"
+import { ImagePlus, X } from "lucide-react"
 import { MagneticButton } from "@/shared/ui/MagneticButton"
 
 export default function UploadChartPage() {
@@ -43,18 +43,16 @@ export default function UploadChartPage() {
 
     setIsUploading(true)
     try {
-      let success = 0
-      for (const file of files) {
-        const fd = new FormData()
-        fd.append("file", file)
-        fd.append("title", files.length === 1 ? form.title : `${form.title} (${success + 1})`)
-        fd.append("description", form.description)
-        fd.append("type", "image")
-        fd.append("visibility", form.visibility)
-        const res = await fetch("/api/charts", { method: "POST", body: fd })
-        if (res.ok) success++
-      }
-      addToast("success", `${success} 个文件上传成功`)
+      const fd = new FormData()
+      files.forEach((f, i) => fd.append(`file${i}`, f))
+      fd.append("title", form.title)
+      fd.append("description", form.description)
+      fd.append("type", "image")
+      fd.append("visibility", form.visibility)
+
+      const res = await fetch("/api/charts", { method: "POST", body: fd })
+      if (!res.ok) throw new Error("上传失败")
+      addToast("success", `图表上传成功 (${files.length} 张图片)`)
       router.push("/dashboard/charts")
     } catch { addToast("error", "上传失败") }
     finally { setIsUploading(false) }
@@ -74,11 +72,9 @@ export default function UploadChartPage() {
                 {previews.map((src, i) => (
                   <div key={i} className="relative">
                     <img src={src} alt={`预览 ${i + 1}`} className="max-h-32 rounded-xl" />
-                    <button
-                      type="button"
+                    <button type="button"
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-danger text-white flex items-center justify-center text-xs"
-                      onClick={(ev) => { ev.stopPropagation(); removeFile(i) }}
-                    >
+                      onClick={(ev) => { ev.stopPropagation(); removeFile(i) }}>
                       <Icon icon={X} size={12} />
                     </button>
                   </div>
@@ -87,10 +83,11 @@ export default function UploadChartPage() {
             ) : (
               <>
                 <Icon icon={ImagePlus} size={32} className="text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">点击选择图表图片 (PNG/JPG/SVG, 可多选, 单文件最大20MB)</p>
+                <p className="text-sm text-muted-foreground">点击选择图片 (可多选, 单文件最大20MB)</p>
               </>
             )}
-            <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange} accept=".png,.jpg,.jpeg,.svg" multiple />
+            <input ref={fileRef} type="file" className="hidden" onChange={handleFileChange}
+              accept=".png,.jpg,.jpeg,.svg,.gif,.webp" multiple />
           </div>
           <Input label="标题" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
           <Textarea label="描述" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
@@ -102,7 +99,7 @@ export default function UploadChartPage() {
             </MagneticButton>
             <MagneticButton maxOffset={6}>
               <Button type="submit" disabled={isUploading}>
-                {isUploading ? `上传中...` : `上传 (${files.length} 个文件)`}
+                {isUploading ? "上传中..." : `上传图表 (${files.length} 张)`}
               </Button>
             </MagneticButton>
           </div>

@@ -73,7 +73,8 @@ model Chart {
   type          String                     // image | generated
   chartType     String?                    // bar | line | pie | scatter | area | radar | heatmap | sankey
   visibility    String    @default("public")
-  fileUrl       String                     // 生成的PNG或上传的图片
+  fileUrl       String                     // 封面图/单图URL
+  images        Json?                      // 多图URL数组: ["url1","url2"]
   sourceDataUrl String?                    // 源数据CSV文件URL
   chartConfig   Json?                      // { colors, labels, legend, showDataLabels, xAxis, yAxis }
   tags          String?                    // JSON array string

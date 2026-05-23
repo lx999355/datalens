@@ -8,6 +8,7 @@ export interface ChartDTO {
   chartType: string | null
   visibility: string
   fileUrl: string
+  images: string[] | null
   sourceDataUrl: string | null
   chartConfig: Record<string, unknown> | null
   tags: string | null
