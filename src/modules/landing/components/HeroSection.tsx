@@ -24,12 +24,12 @@ export function HeroSection() {
           </StaggerItem>
           <StaggerItem>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <MagneticButton href="/register" maxOffset={6}>
+              <MagneticButton onClick={() => { window.location.href = "/register" }} maxOffset={6}>
                 <span className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground rounded-2xl text-lg font-medium shadow-[0_0_20px_rgba(96,165,250,0.3)]">
                   免费开始
                 </span>
               </MagneticButton>
-              <MagneticButton href="/pricing" maxOffset={6}>
+              <MagneticButton onClick={() => { window.location.href = "/pricing" }} maxOffset={6}>
                 <span className="inline-flex items-center gap-2 px-8 py-3.5 bg-white/[0.05] border border-white/[0.1] text-foreground rounded-2xl text-lg font-medium">
                   查看定价
                 </span>
