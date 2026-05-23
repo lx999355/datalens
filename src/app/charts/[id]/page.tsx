@@ -40,7 +40,7 @@ export default function ChartDetailPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     if (showComments) {
       fetch(`/api/charts/${id}/comments`).then(r => r.json()).then(j => {
-        if (j.data) setComments(j.data)
+        setComments(j.data?.items || [])
       }).catch(() => {})
     }
   }, [showComments, id])

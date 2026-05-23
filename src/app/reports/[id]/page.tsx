@@ -39,7 +39,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     if (showComments) {
       fetch(`/api/reports/${id}/comments`).then(r => r.json()).then(j => {
-        if (j.data) setComments(j.data)
+        setComments(j.data?.items || [])
       }).catch(() => {})
     }
   }, [showComments, id])
